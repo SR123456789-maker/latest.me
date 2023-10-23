@@ -1,0 +1,42 @@
+name: Trigger auto deployment for sr123
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/sr123-AutoDeployTrigger-6979a043-81dd-4d42-9ef6-fc8b58c28bda.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.SR123_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: docker.io
+          registryUsername: ${{ secrets.SR123_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.SR123_REGISTRY_PASSWORD }}
+          containerAppName: sr123
+          resourceGroup: AzureQuantum
+          imageToBuild: fasf/sr123:${{ github.sha }}
+          
+
+     
+
